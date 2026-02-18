@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>URBAN CASA | Executive Quote</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        :root { --urban-navy: #1a2a3a; --urban-gold: #c5a059; --row-accent: #f8f9fa; --accent-green: #27ae60; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #eef2f3; margin: 0; padding-bottom: 140px; color: #2c3e50; font-size: 12px; }
+        .brand-header { background: var(--urban-navy); padding: 25px 20px; text-align: center; border-bottom: 5px solid var(--urban-gold); color: white; }
+        .header-flex { display: flex; align-items: center; justify-content: center; gap: 20px; max-width: 800px; margin: 0 auto; background: transparent; }
+        .brand-logo { max-height: 85px; width: auto; background: transparent; filter: none; border: none; }
+        .brand-text { text-align: left; }
+        .brand-name { font-size: 2.2rem; font-weight: 900; letter-spacing: 4px; margin: 0; line-height: 1; }
+        .brand-tagline { color: var(--urban-gold); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; font-weight: 600; }
+        .contact-info { margin-top: 15px; font-size: 0.8rem; display: flex; justify-content: center; gap: 20px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .container { padding: 12px; max-width: 950px; margin: auto; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; border: 1px solid #e0e6ed; padding-bottom: 80px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid var(--urban-gold); padding-bottom: 5px; }
+        .section-title { font-weight: 800; color: var(--urban-navy); font-size: 0.95rem; text-transform: uppercase; }
+        .btn-del-section { color: #e74c3c; cursor: pointer; font-size: 0.9rem; transition: 0.2s; background: none; border: none; }
+        .item-label { font-size: 0.65rem; color: #95a5a6; text-transform: uppercase; margin-bottom: 10px; font-weight: bold; letter-spacing: 1px; }
+        .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+        .brand-item { display: flex; align-items: center; font-size: 0.7rem; font-weight: 600; background: var(--row-accent); padding: 4px 8px; border-radius: 4px; border: 1px solid #eee; }
+        .brand-item input { width: 12px; height: 12px; margin-right: 6px; }
+        .measurement-row { display: grid; gap: 8px; margin-bottom: 8px; align-items: end; background: var(--row-accent); padding: 10px; border-radius: 6px; border: 1px solid #dee2e6; }
+        .row-dims { grid-template-columns: 2fr 0.5fr 0.5fr 0.8fr 1fr 85px; }
+        .row-fixed { grid-template-columns: 2.5fr 0.5fr 0.8fr 1fr 85px; }
+        .controls { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
+        .btn-move { border:none; background:none; color:#7f8c8d; cursor:pointer; font-size:0.8rem; padding: 2px; }
+        .btn-del { border:none; background:none; color:#e74c3c; cursor:pointer; font-size:1rem; }
+        .btn-add-row { position: absolute; bottom: 15px; right: 20px; background: var(--urban-navy); color: white; border: none; padding: 6px 14px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+        .room-summary { position: absolute; bottom: 18px; left: 20px; border-top: 1px solid #eee; padding-top: 8px; width: 60%; font-size: 0.9rem; }
+        input, textarea { width: 100%; padding: 7px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px; box-sizing: border-box; font-family: inherit; }
+        label { display: block; font-size: 0.6rem; color: var(--urban-navy); margin-bottom: 3px; font-weight: 700; text-transform: uppercase; }
+        .footer-nav { position: fixed; bottom: 0; width: 100%; background: var(--urban-navy); color: white; padding: 12px 0; border-top: 4px solid var(--urban-gold); z-index: 1000; }
+        .footer-content { max-width: 950px; margin: auto; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; }
+        .footer-stat b { color: var(--urban-gold); font-size: 1.1rem; }
+        .action-btns { display: flex; gap: 6px; }
+        .btn-action { width: 36px; height: 36px; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .bg-wa { background: #25d366; }
+        .bg-print { background: #3498db; }
+        .bg-excel { background: #27ae60; }
+        .bg-save { background: #6c5ce7; }
+        .bg-load { background: #a29bfe; }
+        .bg-clear { background: #f39c12; }
+        .bg-download { background: #16a085; }
+        @media print {
+            @page { size: A4; margin: 10mm; }
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #fff !important; }
+            .no-print, .footer-nav, .btn-add-row, .controls, .btn-del-section { display: none !important; }
+            .card { box-shadow: none !important; border: 1px solid #e0e6ed !important; page-break-inside: avoid; }
+        }
+        .capturing .no-print, .capturing .btn-del-section { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="capture-area">
+    <div class="brand-header">
+        <div class="header-flex">
+            <img src="https://lh3.googleusercontent.com/d/1ciJGqTxPFlmvghoYeAOsJHX_vMrhWL0k" alt="Urban Casa Logo" class="brand-logo">
+            <div class="brand-text">
+                <div class="brand-name">URBAN CASA</div>
+                <div class="brand-tagline">Premium Modular Kitchens & Wardrobes</div>
+            </div>
+        </div>
+        <div class="contact-info">
+            <span><i class="fas fa-map-marker-alt"></i> Raichandani Mall - Kompally</span>
+            <span><i class="fas fa-phone-alt"></i> +91 888 66 88 090</span>
+            <span><i class="fas fa-globe"></i> www.urban-casa.in</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card" style="padding-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1.5fr 1.5fr 0.8fr 0.8fr; gap: 12px;">
+                <div><label>Client Name</label><input type="text" id="cName" placeholder="Full Name"></div>
+                <div><label>Site Address</label><input type="text" id="cAddress" placeholder="Location"></div>
+                <div><label>Date</label><input type="date" id="qDate"></div>
+                <div><label>GST %</label><input type="number" id="gstRate" value="18" oninput="calculate()"></div>
+            </div>
+        </div>
+
+        <div class="card" style="padding-bottom: 20px;">
+            <div class="section-header"><span class="section-title">Authorized Material Brands</span></div>
+            <div class="brand-grid" id="brand-list">
+                <label class="brand-item"><input type="checkbox" checked> Green Ply</label>
+                <label class="brand-item"><input type="checkbox" checked> Green Lam</label>
+                <label class="brand-item"><input type="checkbox" checked> Century</label>
+                <label class="brand-item"><input type="checkbox" checked> Merino</label>
+                <label class="brand-item"><input type="checkbox"> Advance</label>
+                <label class="brand-item"><input type="checkbox" checked> Rehau</label>
+                <label class="brand-item"><input type="checkbox"> Virgo</label>
+                <label class="brand-item"><input type="checkbox"> Royal Touche</label>
+            </div>
+        </div>
+
+        <div id="room-container"></div>
+
+        <div class="card" style="padding-bottom: 20px;">
+            <div class="section-header"><span class="section-title">Designer Notes & Special Instructions</span></div>
+            <textarea id="customNotes" style="height: 60px; resize: none;" placeholder="Enter laminate codes, special hardware details, or site instructions..."></textarea>
+        </div>
+
+        <div class="card" style="padding-bottom: 20px; background: #fdfcf9; border: 1px dashed var(--urban-gold);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center;">
+                <div>
+                    <div class="item-label" style="margin-bottom: 5px;">Total Woodwork Area</div>
+                    <span style="font-size: 1.4rem; font-weight: 800; color: var(--urban-navy);">
+                        <span id="pdfSft">0</span> <small style="font-size: 0.7rem; color: #7f8c8d;">SFT</small>
+                    </span>
+                </div>
+                <div style="border-left: 2px solid #eee;">
+                    <div class="item-label" style="margin-bottom: 5px;">Hardware & Accessories</div>
+                    <span style="font-size: 1.4rem; font-weight: 800; color: var(--urban-navy);">
+                        <span id="pdfQty">0</span> <small style="font-size: 0.7rem; color: #7f8c8d;">UNITS</small>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="padding-bottom: 20px;">
+            <div class="section-header"><span class="section-title">Legal Terms & Project Conditions</span></div>
+            <div style="font-size: 0.75rem; color: #555; columns: 2; line-height: 1.6; column-gap: 30px;">
+                <p style="margin: 0 0 8px 0;"><strong>1. Payment Schedule:</strong> 10% booking advance (Non-refundable). 50% on design sign-off and production start. 30% upon material dispatch to site. Final 10% strictly post-installation.</p>
+                <p style="margin: 0 0 8px 0;"><strong>2. Measurements & Changes:</strong> The quote is based on current site dimensions. Any variation in final site measurements or design changes post-production will be charged extra.</p>
+                <p style="margin: 0 0 8px 0;"><strong>3. Site Readiness:</strong> Site must be cleared of other vendors (Civil/Electrical) before installation. Delay in site readiness or final payment will extend the delivery timeline.</p>
+                <p style="margin: 0 0 8px 0;"><strong>4. Warranty Limits:</strong> 10-year warranty applies to BWP Plywood against termite/borer. Hardware warranty is as per OEM (Hettich/Hafele). Excludes physical damage or water seepage.</p>
+                <p style="margin: 0 0 8px 0;"><strong>5. Taxation & Validity:</strong> Prices include GST as per current govt norms. Quote is valid for 15 days. Any increase in raw material cost after validity will be adjusted in final bill.</p>
+                <p style="margin: 0 0 8px 0;"><strong>6. Exclusions:</strong> Standard installation excludes Civil, Granite cutting, Electrical point shifting, and Plumbing unless specifically mentioned as a line item.</p>
+            </div>
+        </div>
+
+        <div class="card" style="border-top: 5px solid var(--urban-navy); padding-bottom: 40px; background-color: #ffffff;">
+            <div style="display: flex; justify-content: flex-end; gap: 40px; margin-bottom: 40px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e6ed;">
+                <div style="text-align: right;">
+                    <span style="font-size: 0.75rem; font-weight: bold; color: #7f8c8d;">SUB-TOTAL</span><br>
+                    <span style="font-size: 1.2rem; font-weight: 700;">₹ <span id="dispSub">0</span></span>
+                </div>
+                <div style="text-align: right; border-left: 2px solid #ddd; padding-left: 40px;">
+                    <span style="font-size: 0.85rem; color: var(--accent-green); font-weight: bold;">GRAND TOTAL (INCL. GST)</span><br>
+                    <span style="font-size: 2rem; font-weight: 900; color: var(--urban-navy);">₹ <span id="dispGrand">0</span></span>
+                </div>
+            </div>
+
+            <div class="signature-container" style="display: flex; justify-content: space-between; gap: 20px;">
+                <div class="sig-box" style="background-color: #fcfaf5; border: 1px solid #e0e6ed; border-top: 3px solid var(--urban-navy); padding: 20px; border-radius: 4px; flex: 1; text-align: center;">
+                    <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 40px; color: var(--urban-navy);">For Urban Casa</div>
+                    <div style="border-top: 1px dashed #ccc; padding-top: 5px; font-size: 0.65rem; color: #95a5a6;">Authorized Signatory</div>
+                </div>
+                <div class="sig-box" style="background-color: #fcfaf5; border: 1px solid #e0e6ed; border-top: 3px solid var(--urban-navy); padding: 20px; border-radius: 4px; flex: 1; text-align: center;">
+                    <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 40px; color: var(--urban-navy);">Customer Signature</div>
+                    <div style="border-top: 1px dashed #ccc; padding-top: 5px; font-size: 0.65rem; color: #95a5a6;">Acceptance of Terms</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-nav no-print">
+    <div class="footer-content">
+        <div class="footer-stat"><small>Wood (Sft)</small><br><b id="footerSft">0</b></div>
+        <div class="footer-stat"><small>Hardw (Qty)</small><br><b id="footerQty">0</b></div>
+        <div class="footer-stat"><small>Total (Incl GST)</small><br><b id="footerGrand">₹ 0</b></div>
+        <div class="action-btns">
+            <button class="btn-action bg-download" onclick="saveAsEditableHTML()" title="Save as Editable HTML"><i class="fas fa-file-code"></i></button>
+            <button class="btn-action bg-clear" onclick="clearForm()" title="Clear Form"><i class="fas fa-broom"></i></button>
+            <button class="btn-action bg-save" onclick="saveQuote()" title="Save Local"><i class="fas fa-save"></i></button>
+            <button class="btn-action bg-load" onclick="loadQuote()" title="Load Local"><i class="fas fa-folder-open"></i></button>
+            <button class="btn-action bg-excel" onclick="exportToExcel()" title="Excel"><i class="fas fa-file-excel"></i></button>
+            <button class="btn-action bg-print" onclick="window.print()" title="Print"><i class="fas fa-print"></i></button>
+            <button class="btn-action bg-wa" onclick="shareToWhatsApp()" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const rooms = [
+        { name: "Kitchen", type: "dims" },
+        { name: "Hall / Living & Dining", type: "dims" },
+        { name: "Master Bedroom", type: "dims" },
+        { name: "Children Bedroom", type: "dims" },
+        { name: "Guest Bedroom", type: "dims" },
+        { name: "Hardware & Accessories", type: "fixed" }
+    ];
+
+    window.onload = () => {
+        if (!document.getElementById('qDate').value) {
+            document.getElementById('qDate').value = new Date().toISOString().split('T')[0];
+        }
+        renderRooms();
+        calculate();
+    };
+
+    function renderRooms() {
+        const cont = document.getElementById('room-container');
+        cont.innerHTML = '';
+        rooms.forEach((room, idx) => {
+            const div = document.createElement('div');
+            div.className = 'card room-card';
+            div.id = `room-card-${idx}`;
+            div.dataset.index = idx;
+            div.dataset.roomType = room.type;
+            const unitLabel = (room.type === 'fixed') ? 'UNITS' : 'SFT';
+            const roomLabel = (room.type === 'fixed') ? 'Hardware Total:' : `${room.name} Total:`;
+            
+            div.innerHTML = `
+                <div class="section-header">
+                    <span class="section-title">${room.name}</span>
+                    <button class="btn-del-section no-print" onclick="removeSection(${idx})" title="Remove Category">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div class="item-label">Itemized Breakdown</div>
+                <div id="sec-${idx}"></div>
+                <div class="room-summary">
+                    <span style="color: var(--urban-navy); font-weight: 700;">${roomLabel}</span> 
+                    <span style="color: var(--urban-gold); margin-left: 10px; font-weight: 800;">
+                        <span id="room-sft-${idx}">0</span> <small style="font-size: 0.65rem;">${unitLabel}</small>
+                    </span> 
+                    <span style="margin: 0 10px; color: #ccc;">|</span>
+                    <span style="color: var(--accent-green); font-weight: 800;">₹ <span id="room-total-${idx}">0</span></span>
+                </div>
+                <button class="btn-add-row no-print" onclick="addItem(${idx}, '${room.type}')">+ Add Item</button>`;
+            cont.appendChild(div);
+            addItem(idx, room.type);
+        });
+    }
+
+    function removeSection(idx) {
+        if(confirm("Are you sure you want to remove this category?")) {
+            document.getElementById(`room-card-${idx}`).remove();
+            calculate();
+        }
+    }
+
+    function addItem(idx, type) {
+        const target = document.getElementById(`sec-${idx}`);
+        if (!target) return;
+        const id = 'r-' + Math.random().toString(36).substr(2, 5);
+        
+        const controls = `
+            <div class="controls no-print" style="display: flex; gap: 4px; align-items: center; justify-content: flex-end;">
+                <button title="Move Up" class="btn-move" onclick="moveRow('${id}', 'up')">▲</button>
+                <button title="Move Down" class="btn-move" onclick="moveRow('${id}', 'down')">▼</button>
+                <button title="Delete" class="btn-del" onclick="document.getElementById('${id}').remove();calculate()">✕</button>
+            </div>`;
+
+        const html = (type === 'dims') ? 
+            `<div class="measurement-row row-dims" id="${id}">
+                <div><label>Description</label><input type="text" class="desc-val"></div>
+                <div><label>W</label><input type="number" class="w-val" oninput="calculate()"></div>
+                <div><label>H</label><input type="number" class="h-val" oninput="calculate()"></div>
+                <div><label>Rate</label><input type="number" class="r-val" oninput="calculate()"></div>
+                <div style="font-weight:bold;color:var(--accent-green);">₹ <span class="row-total">0</span></div>
+                ${controls}
+            </div>` :
+            `<div class="measurement-row row-fixed" id="${id}">
+                <div><label>Hardware Item</label><input type="text" class="desc-val"></div>
+                <div><label>Qty</label><input type="number" class="q-val" value="0" oninput="calculate()"></div>
+                <div><label>Price</label><input type="number" class="amt-val" oninput="calculate()"></div>
+                <div style="font-weight:bold;color:var(--accent-green);">₹ <span class="row-total">0</span></div>
+                ${controls}
+            </div>`;
+        target.insertAdjacentHTML('beforeend', html);
+    }
+
+    function moveRow(id, dir) {
+        const row = document.getElementById(id);
+        if (dir === 'up' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+        if (dir === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+    }
+
+    function calculate() {
+        let sftTotal = 0, hqtyTotal = 0, subTotal = 0;
+        document.querySelectorAll('.room-card').forEach(card => {
+            let cardSum = 0, cardMetric = 0;
+            const idx = card.dataset.index;
+            const type = card.dataset.roomType;
+            card.querySelectorAll('.measurement-row').forEach(row => {
+                let val = 0;
+                if(type === 'dims') {
+                    const w = row.querySelector('.w-val').value || 0;
+                    const h = row.querySelector('.h-val').value || 0;
+                    const r = row.querySelector('.r-val').value || 0;
+                    const sft = (w * h / 144);
+                    val = sft * r; cardMetric += sft; sftTotal += sft;
+                } else {
+                    const q = parseFloat(row.querySelector('.q-val').value) || 0;
+                    const p = parseFloat(row.querySelector('.amt-val').value) || 0;
+                    val = q * p; cardMetric += q; hqtyTotal += q;
+                }
+                row.querySelector('.row-total').innerText = Math.round(val).toLocaleString('en-IN');
+                cardSum += val;
+            });
+            const sftDisp = document.getElementById(`room-sft-${idx}`);
+            const totalDisp = document.getElementById(`room-total-${idx}`);
+            if (sftDisp) sftDisp.innerText = (type === 'dims') ? cardMetric.toFixed(1) : cardMetric;
+            if (totalDisp) totalDisp.innerText = Math.round(cardSum).toLocaleString('en-IN');
+            subTotal += cardSum;
+        });
+        const gst = parseFloat(document.getElementById('gstRate').value) || 0;
+        const grand = Math.round(subTotal * (1 + (gst/100)));
+        document.getElementById('footerSft').innerText = sftTotal.toFixed(1);
+        document.getElementById('footerQty').innerText = hqtyTotal;
+        document.getElementById('footerGrand').innerText = "₹ " + grand.toLocaleString('en-IN');
+        document.getElementById('pdfSft').innerText = sftTotal.toFixed(1);
+        document.getElementById('pdfQty').innerText = hqtyTotal;
+        document.getElementById('dispSub').innerText = Math.round(subTotal).toLocaleString('en-IN');
+        document.getElementById('dispGrand').innerText = grand.toLocaleString('en-IN');
+    }
+
+    function clearForm() {
+        if(confirm("Clear all data and start a new quote?")) {
+            document.getElementById('cName').value = '';
+            document.getElementById('cAddress').value = '';
+            document.getElementById('customNotes').value = '';
+            renderRooms(); calculate(); window.scrollTo(0,0);
+        }
+    }
+
+    // --- NEW: EXPORT HTML WITH CUSTOMER NAME AND NO DATA LOSS ---
+    function saveAsEditableHTML() {
+        const clientName = document.getElementById('cName').value.trim() || 'Draft';
+        const filename = `Urban_Casa_Quote_${clientName.replace(/\s+/g, '_')}.html`;
+        
+        // Sync values to attributes to prevent data loss in HTML source
+        document.querySelectorAll('input').forEach(i => {
+            if (i.type === 'checkbox') {
+                if(i.checked) i.setAttribute('checked', 'checked'); else i.removeAttribute('checked');
+            } else {
+                i.setAttribute('value', i.value);
+            }
+        });
+        document.getElementById('customNotes').innerHTML = document.getElementById('customNotes').value;
+
+        const blob = new Blob(["<!DOCTYPE html>\n" + document.documentElement.outerHTML], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+    }
+
+    function saveQuote() {
+        const data = {
+            client: { name: document.getElementById('cName').value, address: document.getElementById('cAddress').value, date: document.getElementById('qDate').value, gst: document.getElementById('gstRate').value },
+            notes: document.getElementById('customNotes').value,
+            brands: Array.from(document.querySelectorAll('#brand-list input')).map(i => i.checked),
+            rooms: Array.from(document.querySelectorAll('.room-card')).map(card => ({
+                name: card.querySelector('.section-title').innerText,
+                type: card.dataset.roomType,
+                items: Array.from(card.querySelectorAll('.measurement-row')).map(row => (card.dataset.roomType === 'dims' ? 
+                    { d: row.querySelector('.desc-val').value, w: row.querySelector('.w-val').value, h: row.querySelector('.h-val').value, r: row.querySelector('.r-val').value } :
+                    { d: row.querySelector('.desc-val').value, q: row.querySelector('.q-val').value, p: row.querySelector('.amt-val').value }))
+            }))
+        };
+        localStorage.setItem('urban_casa_quote', JSON.stringify(data));
+        alert("Saved to browser cache.");
+    }
+
+    function loadQuote() {
+        const saved = localStorage.getItem('urban_casa_quote');
+        if(!saved) return alert("No local data.");
+        const data = JSON.parse(saved);
+        document.getElementById('cName').value = data.client.name;
+        document.getElementById('cAddress').value = data.client.address;
+        document.getElementById('qDate').value = data.client.date;
+        document.getElementById('gstRate').value = data.client.gst;
+        document.getElementById('customNotes').value = data.notes || "";
+        const cont = document.getElementById('room-container'); cont.innerHTML = '';
+        data.rooms.forEach((r, idx) => {
+            const div = document.createElement('div');
+            div.className = 'card room-card'; div.id = `room-card-${idx}`; div.dataset.index = idx; div.dataset.roomType = r.type;
+            const unitLabel = (r.type === 'fixed') ? 'UNITS' : 'SFT';
+            div.innerHTML = `<div class="section-header"><span class="section-title">${r.name}</span><button class="btn-del-section no-print" onclick="removeSection(${idx})"><i class="fas fa-trash-alt"></i></button></div><div id="sec-${idx}"></div><div class="room-summary"><span id="room-sft-${idx}">0</span> ${unitLabel} | ₹ <span id="room-total-${idx}">0</span></div><button class="btn-add-row no-print" onclick="addItem(${idx},'${r.type}')">+ Add Item</button>`;
+            cont.appendChild(div);
+            r.items.forEach(item => {
+                addItem(idx, r.type);
+                const last = div.querySelectorAll('.measurement-row:last-child')[0];
+                last.querySelector('.desc-val').value = item.d;
+                if(r.type === 'dims') { last.querySelector('.w-val').value = item.w; last.querySelector('.h-val').value = item.h; last.querySelector('.r-val').value = item.r; }
+                else { last.querySelector('.q-val').value = item.q; last.querySelector('.amt-val').value = item.p; }
+            });
+        });
+        calculate(); alert("Loaded!");
+    }
+
+    // --- NEW: EXPORT EXCEL WITH CUSTOMER NAME ---
+    function exportToExcel() {
+        const clientName = document.getElementById('cName').value.trim() || 'Customer';
+        const siteAddress = document.getElementById('cAddress').value || 'Not Specified';
+        const quoteDate = document.getElementById('qDate').value;
+        const notes = document.getElementById('customNotes').value || "";
+        
+        let tableData = [
+            ["URBAN CASA - PREMIUM MODULAR QUOTE"], ["Website:", "www.urban-casa.in"], ["Date:", quoteDate], ["Client Name:", clientName], ["Site Address:", siteAddress], [""], 
+            ["CATEGORY", "ITEM DESCRIPTION", "DIMENSIONS / QTY", "RATE / PRICE", "TOTAL"]
+        ];
+        
+        document.querySelectorAll('.room-card').forEach(card => {
+            const roomName = card.querySelector('.section-title').innerText;
+            const type = card.dataset.roomType;
+            card.querySelectorAll('.measurement-row').forEach(row => {
+                const desc = row.querySelector('.desc-val').value || "—";
+                const total = row.querySelector('.row-total').innerText;
+                if (type === 'dims') {
+                    const dims = `${row.querySelector('.w-val').value} x ${row.querySelector('.h-val').value} in`;
+                    tableData.push([roomName, desc, dims, "₹ " + row.querySelector('.r-val').value, "₹ " + total]);
+                } else {
+                    const qty = `${row.querySelector('.q-val').value} units`;
+                    tableData.push(["Hardware", desc, qty, "₹ " + row.querySelector('.amt-val').value, "₹ " + total]);
+                }
+            });
+        });
+        
+        tableData.push([""], ["", "", "", "SUB-TOTAL", "₹ " + document.getElementById('dispSub').innerText], ["", "", "", "GRAND TOTAL", "₹ " + document.getElementById('dispGrand').innerText], [""]);
+        if(notes) { tableData.push(["DESIGNER NOTES:"], [notes], [""]); }
+        
+        tableData.push(
+            ["LEGAL TERMS & PROJECT CONDITIONS"],
+            ["1. Payment Schedule: 10% booking advance, 50% design sign-off/production, 30% dispatch, 10% post-installation"],
+            ["2. Measurements & Changes: Quote based on current site dimensions; variations charged extra"],
+            ["3. Site Readiness: Site must be cleared of Civil/Electrical vendors before installation"],
+            ["4. Warranty: 10-year warranty on BWP Plywood; Hardware as per OEM (Hettich/Hafele)"],
+            ["5. Taxation & Validity: Prices include GST; Quote valid for 15 days"],
+            ["6. Exclusions: Excludes Civil, Granite, Electrical shifting, and Plumbing"],
+            [""]
+        );
+        tableData.push(["__________________________", "", "", "", "__________________________"], ["AUTHORIZED SIGNATORY", "", "", "", "CUSTOMER SIGNATURE"], ["(For Urban Casa)", "", "", "", "(Acceptance of Quote)"]);
+        
+        const ws = XLSX.utils.aoa_to_sheet(tableData);
+        ws['!cols'] = [{ wch: 20 }, { wch: 35 }, { wch: 20 }, { wch: 15 }, { wch: 18 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Quote");
+        XLSX.writeFile(wb, `Urban_Casa_${clientName.replace(/\s+/g, '_')}.xlsx`);
+    }
+
+    // --- NEW: WHATSAPP SHARE WITH CUSTOMER NAME ---
+    async function shareToWhatsApp() {
+        const clientName = document.getElementById('cName').value.trim() || 'Customer';
+        const area = document.getElementById('capture-area');
+        document.body.classList.add('capturing');
+        
+        const canvas = await html2canvas(area, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const fileName = `Urban_Casa_Quote_${clientName.replace(/\s+/g, '_')}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ 
+                files: [file], 
+                title: `Urban Casa Estimate - ${clientName}`,
+                text: `Modular Woodwork Estimate for ${clientName}`
+            });
+        } else { 
+            alert("Sharing not supported. File: " + fileName + ". Please use Print/Screenshot."); 
+        }
+        document.body.classList.remove('capturing');
+    }
+</script>
+</body>
+</html>
