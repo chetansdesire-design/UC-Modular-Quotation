@@ -9,6 +9,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            databaseURL: "https://modular-quotation-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+    
     <style>
         :root { --urban-navy: #1a2a3a; --urban-gold: #c5a059; --row-accent: #f8f9fa; --accent-green: #27ae60; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: #eef2f3; margin: 0; padding-bottom: 140px; color: #2c3e50; font-size: 12px; }
@@ -47,9 +59,7 @@
         .bg-print { background: #3498db; }
         .bg-excel { background: #27ae60; }
         .bg-save { background: #6c5ce7; }
-        .bg-load { background: #a29bfe; }
-        .bg-clear { background: #f39c12; }
-        .bg-download { background: #16a085; }
+        .bg-search { background: #a29bfe; }
         @media print {
             @page { size: A4; margin: 10mm; }
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #fff !important; }
@@ -79,8 +89,9 @@
 
     <div class="container">
         <div class="card" style="padding-bottom: 20px;">
-            <div style="display: grid; grid-template-columns: 1.5fr 1.5fr 0.8fr 0.8fr; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 0.6fr; gap: 10px; align-items: end;">
                 <div><label>Client Name</label><input type="text" id="cName" placeholder="Full Name"></div>
+                <div><label>Phone Number</label><input type="tel" id="cPhone" placeholder="Mobile No."></div>
                 <div><label>Site Address</label><input type="text" id="cAddress" placeholder="Location"></div>
                 <div><label>Date</label><input type="date" id="qDate"></div>
                 <div><label>GST %</label><input type="number" id="gstRate" value="18" oninput="calculate()"></div>
@@ -128,12 +139,12 @@
         <div class="card" style="padding-bottom: 20px;">
             <div class="section-header"><span class="section-title">Legal Terms & Project Conditions</span></div>
             <div style="font-size: 0.75rem; color: #555; columns: 2; line-height: 1.6; column-gap: 30px;">
-                <p style="margin: 0 0 8px 0;"><strong>1. Payment Schedule:</strong> 10% booking advance (Non-refundable). 50% on design sign-off and production start. 30% upon material dispatch to site. Final 10% strictly post-installation.</p>
-                <p style="margin: 0 0 8px 0;"><strong>2. Measurements & Changes:</strong> The quote is based on current site dimensions. Any variation in final site measurements or design changes post-production will be charged extra.</p>
-                <p style="margin: 0 0 8px 0;"><strong>3. Site Readiness:</strong> Site must be cleared of other vendors (Civil/Electrical) before installation. Delay in site readiness or final payment will extend the delivery timeline.</p>
-                <p style="margin: 0 0 8px 0;"><strong>4. Warranty Limits:</strong> 10-year warranty applies to BWP Plywood against termite/borer. Hardware warranty is as per OEM (Hettich/Hafele). Excludes physical damage or water seepage.</p>
-                <p style="margin: 0 0 8px 0;"><strong>5. Taxation & Validity:</strong> Prices include GST as per current govt norms. Quote is valid for 15 days. Any increase in raw material cost after validity will be adjusted in final bill.</p>
-                <p style="margin: 0 0 8px 0;"><strong>6. Exclusions:</strong> Standard installation excludes Civil, Granite cutting, Electrical point shifting, and Plumbing unless specifically mentioned as a line item.</p>
+                <p style="margin: 0 0 8px 0;"><strong>1. Payment Schedule:</strong> 10% booking advance. 50% on design sign-off. 30% on material dispatch. 10% post-installation.</p>
+                <p style="margin: 0 0 8px 0;"><strong>2. Measurements:</strong> Based on site dimensions. Post-production changes charged extra.</p>
+                <p style="margin: 0 0 8px 0;"><strong>3. Site Readiness:</strong> Must be cleared of other civil vendors before installation.</p>
+                <p style="margin: 0 0 8px 0;"><strong>4. Warranty:</strong> 10-year on BWP Plywood. Hardware as per OEM.</p>
+                <p style="margin: 0 0 8px 0;"><strong>5. Validity:</strong> Quote valid for 15 days. Includes GST.</p>
+                <p style="margin: 0 0 8px 0;"><strong>6. Exclusions:</strong> Civil, Granite, Electrical shifting, and Plumbing excluded.</p>
             </div>
         </div>
 
@@ -169,18 +180,21 @@
         <div class="footer-stat"><small>Hardw (Qty)</small><br><b id="footerQty">0</b></div>
         <div class="footer-stat"><small>Total (Incl GST)</small><br><b id="footerGrand">₹ 0</b></div>
         <div class="action-btns">
-            <button class="btn-action bg-download" onclick="saveAsEditableHTML()" title="Save as Editable HTML"><i class="fas fa-file-code"></i></button>
-            <button class="btn-action bg-clear" onclick="clearForm()" title="Clear Form"><i class="fas fa-broom"></i></button>
-            <button class="btn-action bg-save" onclick="saveQuote()" title="Save Local"><i class="fas fa-save"></i></button>
-            <button class="btn-action bg-load" onclick="loadQuote()" title="Load Local"><i class="fas fa-folder-open"></i></button>
+            <button class="btn-action bg-save" onclick="saveToCloud()" title="Save to Cloud">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </button>
+            <button class="btn-action bg-search" onclick="searchDatabase()" title="Search Database">
+                <i class="fas fa-search"></i>
+            </button>
             <button class="btn-action bg-excel" onclick="exportToExcel()" title="Excel"><i class="fas fa-file-excel"></i></button>
-            <button class="btn-action bg-print" onclick="window.print()" title="Print"><i class="fas fa-print"></i></button>
+            <button class="btn-action bg-print" onclick="handlePrint()" title="Print"><i class="fas fa-print"></i></button>
             <button class="btn-action bg-wa" onclick="shareToWhatsApp()" title="WhatsApp"><i class="fab fa-whatsapp"></i></button>
         </div>
     </div>
 </div>
 
 <script>
+    // Room Categories and Initialization
     const rooms = [
         { name: "Kitchen", type: "dims" },
         { name: "Hall / Living & Dining", type: "dims" },
@@ -202,35 +216,40 @@
         const cont = document.getElementById('room-container');
         cont.innerHTML = '';
         rooms.forEach((room, idx) => {
-            const div = document.createElement('div');
-            div.className = 'card room-card';
-            div.id = `room-card-${idx}`;
-            div.dataset.index = idx;
-            div.dataset.roomType = room.type;
-            const unitLabel = (room.type === 'fixed') ? 'UNITS' : 'SFT';
-            const roomLabel = (room.type === 'fixed') ? 'Hardware Total:' : `${room.name} Total:`;
-            
-            div.innerHTML = `
-                <div class="section-header">
-                    <span class="section-title">${room.name}</span>
-                    <button class="btn-del-section no-print" onclick="removeSection(${idx})" title="Remove Category">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <div class="item-label">Itemized Breakdown</div>
-                <div id="sec-${idx}"></div>
-                <div class="room-summary">
-                    <span style="color: var(--urban-navy); font-weight: 700;">${roomLabel}</span> 
-                    <span style="color: var(--urban-gold); margin-left: 10px; font-weight: 800;">
-                        <span id="room-sft-${idx}">0</span> <small style="font-size: 0.65rem;">${unitLabel}</small>
-                    </span> 
-                    <span style="margin: 0 10px; color: #ccc;">|</span>
-                    <span style="color: var(--accent-green); font-weight: 800;">₹ <span id="room-total-${idx}">0</span></span>
-                </div>
-                <button class="btn-add-row no-print" onclick="addItem(${idx}, '${room.type}')">+ Add Item</button>`;
-            cont.appendChild(div);
-            addItem(idx, room.type);
+            renderRoomElement(room, idx);
         });
+    }
+
+    function renderRoomElement(room, idx) {
+        const cont = document.getElementById('room-container');
+        const div = document.createElement('div');
+        div.className = 'card room-card';
+        div.id = `room-card-${idx}`;
+        div.dataset.index = idx;
+        div.dataset.roomType = room.type;
+        const unitLabel = (room.type === 'fixed') ? 'UNITS' : 'SFT';
+        const roomLabel = (room.type === 'fixed') ? 'Hardware Total:' : `${room.name} Total:`;
+        
+        div.innerHTML = `
+            <div class="section-header">
+                <span class="section-title">${room.name}</span>
+                <button class="btn-del-section no-print" onclick="removeSection(${idx})" title="Remove Category">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            <div class="item-label">Itemized Breakdown</div>
+            <div id="sec-${idx}"></div>
+            <div class="room-summary">
+                <span style="color: var(--urban-navy); font-weight: 700;">${roomLabel}</span> 
+                <span style="color: var(--urban-gold); margin-left: 10px; font-weight: 800;">
+                    <span id="room-sft-${idx}">0</span> <small style="font-size: 0.65rem;">${unitLabel}</small>
+                </span> 
+                <span style="margin: 0 10px; color: #ccc;">|</span>
+                <span style="color: var(--accent-green); font-weight: 800;">₹ <span id="room-total-${idx}">0</span></span>
+            </div>
+            <button class="btn-add-row no-print" onclick="addItem(${idx}, '${room.type}')">+ Add Item</button>`;
+        cont.appendChild(div);
+        addItem(idx, room.type);
     }
 
     function removeSection(idx) {
@@ -277,6 +296,7 @@
         if (dir === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
     }
 
+    // Calculation Engine
     function calculate() {
         let sftTotal = 0, hqtyTotal = 0, subTotal = 0;
         document.querySelectorAll('.room-card').forEach(card => {
@@ -316,41 +336,32 @@
         document.getElementById('dispGrand').innerText = grand.toLocaleString('en-IN');
     }
 
-    function clearForm() {
-        if(confirm("Clear all data and start a new quote?")) {
-            document.getElementById('cName').value = '';
-            document.getElementById('cAddress').value = '';
-            document.getElementById('customNotes').value = '';
-            renderRooms(); calculate(); window.scrollTo(0,0);
-        }
+    // --- DATABASE & EXPORT LOGIC ---
+
+    async function handlePrint() {
+        await saveToCloud(true);
+        window.print();
     }
 
-    // --- NEW: EXPORT HTML WITH CUSTOMER NAME AND NO DATA LOSS ---
-    function saveAsEditableHTML() {
-        const clientName = document.getElementById('cName').value.trim() || 'Draft';
-        const filename = `Urban_Casa_Quote_${clientName.replace(/\s+/g, '_')}.html`;
+    async function saveToCloud(isSilent = false) {
+        const clientName = document.getElementById('cName').value.trim();
+        const clientPhone = document.getElementById('cPhone').value.trim();
         
-        // Sync values to attributes to prevent data loss in HTML source
-        document.querySelectorAll('input').forEach(i => {
-            if (i.type === 'checkbox') {
-                if(i.checked) i.setAttribute('checked', 'checked'); else i.removeAttribute('checked');
-            } else {
-                i.setAttribute('value', i.value);
-            }
-        });
-        document.getElementById('customNotes').innerHTML = document.getElementById('customNotes').value;
+        if (!clientName || !clientPhone) {
+            if (!isSilent) alert("Client Name and Phone Number are required.");
+            return;
+        }
 
-        const blob = new Blob(["<!DOCTYPE html>\n" + document.documentElement.outerHTML], { type: 'text/html' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-    }
-
-    function saveQuote() {
         const data = {
-            client: { name: document.getElementById('cName').value, address: document.getElementById('cAddress').value, date: document.getElementById('qDate').value, gst: document.getElementById('gstRate').value },
+            client: { 
+                name: clientName, 
+                phone: clientPhone,
+                address: document.getElementById('cAddress').value, 
+                date: document.getElementById('qDate').value, 
+                gst: document.getElementById('gstRate').value 
+            },
             notes: document.getElementById('customNotes').value,
+            grandTotal: document.getElementById('dispGrand').innerText,
             brands: Array.from(document.querySelectorAll('#brand-list input')).map(i => i.checked),
             rooms: Array.from(document.querySelectorAll('.room-card')).map(card => ({
                 name: card.querySelector('.section-title').innerText,
@@ -358,109 +369,102 @@
                 items: Array.from(card.querySelectorAll('.measurement-row')).map(row => (card.dataset.roomType === 'dims' ? 
                     { d: row.querySelector('.desc-val').value, w: row.querySelector('.w-val').value, h: row.querySelector('.h-val').value, r: row.querySelector('.r-val').value } :
                     { d: row.querySelector('.desc-val').value, q: row.querySelector('.q-val').value, p: row.querySelector('.amt-val').value }))
-            }))
+            })),
+            timestamp: new Date().toISOString()
         };
-        localStorage.setItem('urban_casa_quote', JSON.stringify(data));
-        alert("Saved to browser cache.");
+
+        try {
+            await database.ref('quotations/' + clientName.replace(/\s+/g, '_')).set(data);
+            if (!isSilent) alert("Saved to Cloud!");
+        } catch (e) {
+            if (!isSilent) alert("Cloud Save Error: " + e.message);
+        }
     }
 
-    function loadQuote() {
-        const saved = localStorage.getItem('urban_casa_quote');
-        if(!saved) return alert("No local data.");
-        const data = JSON.parse(saved);
-        document.getElementById('cName').value = data.client.name;
-        document.getElementById('cAddress').value = data.client.address;
-        document.getElementById('qDate').value = data.client.date;
-        document.getElementById('gstRate').value = data.client.gst;
-        document.getElementById('customNotes').value = data.notes || "";
-        const cont = document.getElementById('room-container'); cont.innerHTML = '';
-        data.rooms.forEach((r, idx) => {
-            const div = document.createElement('div');
-            div.className = 'card room-card'; div.id = `room-card-${idx}`; div.dataset.index = idx; div.dataset.roomType = r.type;
-            const unitLabel = (r.type === 'fixed') ? 'UNITS' : 'SFT';
-            div.innerHTML = `<div class="section-header"><span class="section-title">${r.name}</span><button class="btn-del-section no-print" onclick="removeSection(${idx})"><i class="fas fa-trash-alt"></i></button></div><div id="sec-${idx}"></div><div class="room-summary"><span id="room-sft-${idx}">0</span> ${unitLabel} | ₹ <span id="room-total-${idx}">0</span></div><button class="btn-add-row no-print" onclick="addItem(${idx},'${r.type}')">+ Add Item</button>`;
-            cont.appendChild(div);
-            r.items.forEach(item => {
-                addItem(idx, r.type);
-                const last = div.querySelectorAll('.measurement-row:last-child')[0];
-                last.querySelector('.desc-val').value = item.d;
-                if(r.type === 'dims') { last.querySelector('.w-val').value = item.w; last.querySelector('.h-val').value = item.h; last.querySelector('.r-val').value = item.r; }
-                else { last.querySelector('.q-val').value = item.q; last.querySelector('.amt-val').value = item.p; }
+    async function searchDatabase() {
+        const query = prompt("Enter Client Name or Phone Number to search:");
+        if (!query) return;
+
+        try {
+            let data = null;
+            const nameSnap = await database.ref('quotations/' + query.replace(/\s+/g, '_')).once('value');
+            data = nameSnap.val();
+
+            if (!data) {
+                const phoneQuery = await database.ref('quotations').orderByChild('client/phone').equalTo(query.trim()).once('value');
+                if (phoneQuery.exists()) {
+                    const results = phoneQuery.val();
+                    data = results[Object.keys(results)[0]];
+                }
+            }
+
+            if (!data) return alert("No record found.");
+
+            document.getElementById('cName').value = data.client.name;
+            document.getElementById('cPhone').value = data.client.phone || "";
+            document.getElementById('cAddress').value = data.client.address;
+            document.getElementById('qDate').value = data.client.date;
+            document.getElementById('gstRate').value = data.client.gst;
+            document.getElementById('customNotes').value = data.notes || "";
+
+            const brandInputs = document.querySelectorAll('#brand-list input');
+            if(data.brands) data.brands.forEach((val, i) => { if(brandInputs[i]) brandInputs[i].checked = val; });
+
+            const cont = document.getElementById('room-container');
+            cont.innerHTML = '';
+            data.rooms.forEach((r, idx) => {
+                renderRoomElement({name: r.name, type: r.type}, idx);
+                const roomDiv = document.getElementById(`room-card-${idx}`);
+                roomDiv.querySelector('#sec-' + idx).innerHTML = ''; 
+                r.items.forEach(item => {
+                    addItem(idx, r.type);
+                    const last = roomDiv.querySelectorAll('.measurement-row:last-child')[0];
+                    last.querySelector('.desc-val').value = item.d;
+                    if(r.type === 'dims') { 
+                        last.querySelector('.w-val').value = item.w; 
+                        last.querySelector('.h-val').value = item.h; 
+                        last.querySelector('.r-val').value = item.r; 
+                    } else { 
+                        last.querySelector('.q-val').value = item.q; 
+                        last.querySelector('.amt-val').value = item.p; 
+                    }
+                });
             });
-        });
-        calculate(); alert("Loaded!");
+            calculate();
+            alert("Loaded from Cloud!");
+        } catch (e) {
+            alert("Search error: " + e.message);
+        }
     }
 
-    // --- NEW: EXPORT EXCEL WITH CUSTOMER NAME ---
     function exportToExcel() {
         const clientName = document.getElementById('cName').value.trim() || 'Customer';
-        const siteAddress = document.getElementById('cAddress').value || 'Not Specified';
-        const quoteDate = document.getElementById('qDate').value;
-        const notes = document.getElementById('customNotes').value || "";
-        
-        let tableData = [
-            ["URBAN CASA - PREMIUM MODULAR QUOTE"], ["Website:", "www.urban-casa.in"], ["Date:", quoteDate], ["Client Name:", clientName], ["Site Address:", siteAddress], [""], 
-            ["CATEGORY", "ITEM DESCRIPTION", "DIMENSIONS / QTY", "RATE / PRICE", "TOTAL"]
-        ];
-        
+        let tableData = [["URBAN CASA - QUOTE"], ["Client:", clientName], [""], ["ROOM", "DESC", "DIM/QTY", "RATE", "TOTAL"]];
         document.querySelectorAll('.room-card').forEach(card => {
             const roomName = card.querySelector('.section-title').innerText;
-            const type = card.dataset.roomType;
             card.querySelectorAll('.measurement-row').forEach(row => {
-                const desc = row.querySelector('.desc-val').value || "—";
                 const total = row.querySelector('.row-total').innerText;
-                if (type === 'dims') {
-                    const dims = `${row.querySelector('.w-val').value} x ${row.querySelector('.h-val').value} in`;
-                    tableData.push([roomName, desc, dims, "₹ " + row.querySelector('.r-val').value, "₹ " + total]);
-                } else {
-                    const qty = `${row.querySelector('.q-val').value} units`;
-                    tableData.push(["Hardware", desc, qty, "₹ " + row.querySelector('.amt-val').value, "₹ " + total]);
-                }
+                const desc = row.querySelector('.desc-val').value;
+                tableData.push([roomName, desc, "", "", "₹ " + total]);
             });
         });
-        
-        tableData.push([""], ["", "", "", "SUB-TOTAL", "₹ " + document.getElementById('dispSub').innerText], ["", "", "", "GRAND TOTAL", "₹ " + document.getElementById('dispGrand').innerText], [""]);
-        if(notes) { tableData.push(["DESIGNER NOTES:"], [notes], [""]); }
-        
-        tableData.push(
-            ["LEGAL TERMS & PROJECT CONDITIONS"],
-            ["1. Payment Schedule: 10% booking advance, 50% design sign-off/production, 30% dispatch, 10% post-installation"],
-            ["2. Measurements & Changes: Quote based on current site dimensions; variations charged extra"],
-            ["3. Site Readiness: Site must be cleared of Civil/Electrical vendors before installation"],
-            ["4. Warranty: 10-year warranty on BWP Plywood; Hardware as per OEM (Hettich/Hafele)"],
-            ["5. Taxation & Validity: Prices include GST; Quote valid for 15 days"],
-            ["6. Exclusions: Excludes Civil, Granite, Electrical shifting, and Plumbing"],
-            [""]
-        );
-        tableData.push(["__________________________", "", "", "", "__________________________"], ["AUTHORIZED SIGNATORY", "", "", "", "CUSTOMER SIGNATURE"], ["(For Urban Casa)", "", "", "", "(Acceptance of Quote)"]);
-        
         const ws = XLSX.utils.aoa_to_sheet(tableData);
-        ws['!cols'] = [{ wch: 20 }, { wch: 35 }, { wch: 20 }, { wch: 15 }, { wch: 18 }];
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Quote");
         XLSX.writeFile(wb, `Urban_Casa_${clientName.replace(/\s+/g, '_')}.xlsx`);
     }
 
-    // --- NEW: WHATSAPP SHARE WITH CUSTOMER NAME ---
     async function shareToWhatsApp() {
+        await saveToCloud(true);
         const clientName = document.getElementById('cName').value.trim() || 'Customer';
         const area = document.getElementById('capture-area');
         document.body.classList.add('capturing');
-        
-        const canvas = await html2canvas(area, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(area, { scale: 2, useCORS: true });
         const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-        const fileName = `Urban_Casa_Quote_${clientName.replace(/\s+/g, '_')}.png`;
-        const file = new File([blob], fileName, { type: 'image/png' });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ 
-                files: [file], 
-                title: `Urban Casa Estimate - ${clientName}`,
-                text: `Modular Woodwork Estimate for ${clientName}`
-            });
-        } else { 
-            alert("Sharing not supported. File: " + fileName + ". Please use Print/Screenshot."); 
-        }
+        const file = new File([blob], `Quote_${clientName}.png`, { type: 'image/png' });
+        if (navigator.share) {
+            await navigator.share({ files: [file], title: 'Urban Casa Quote' });
+        } else { alert("Share not supported. Use Print."); }
         document.body.classList.remove('capturing');
     }
 </script>
